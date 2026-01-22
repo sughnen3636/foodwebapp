@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CLIENT_ID</key>
+	<string>268839700175-p50kch5t0vm489dqqdqem8pmsm4i9nst.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.268839700175-p50kch5t0vm489dqqdqem8pmsm4i9nst</string>
+	<key>ANDROID_CLIENT_ID</key>
+	<string>268839700175-56qhdjj3a2n32feoniafmtc99a5og5nd.apps.googleusercontent.com</string>
+	<key>API_KEY</key>
+	<string>AIzaSyCKo6YbujAH0M9PYbPDWxgh0CeFpBuoDjg</string>
+	<key>GCM_SENDER_ID</key>
+	<string>268839700175</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>foodweb.ng.com</string>
+	<key>PROJECT_ID</key>
+	<string>thebuildershubb</string>
+	<key>STORAGE_BUCKET</key>
+	<string>thebuildershubb.firebasestorage.app</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:268839700175:ios:e5944c269373205fc7d9ba</string>
+</dict>
+</plist>

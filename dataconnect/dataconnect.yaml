@@ -1,0 +1,12 @@
+specVersion: "v1beta"
+serviceId: "User app and web"
+location: "us-south1"
+schema:
+  source: "./schema"
+  datasource:
+    postgresql:
+      database: "postgres"
+      cloudSql:
+        instanceId: "flash-fdc"
+      # schemaValidation: "COMPATIBLE"
+connectorDirs: ["./connector"]

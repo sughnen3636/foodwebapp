@@ -1,0 +1,214 @@
+{
+  "project_info": {
+    "project_number": "268839700175",
+    "project_id": "thebuildershubb",
+    "storage_bucket": "thebuildershubb.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:268839700175:android:f16f454fe1fa4614c7d9ba",
+        "android_client_info": {
+          "package_name": "com.foodweb.vendor"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "268839700175-7fa5pqvp1auhmkvckaqtovgv51i7k6n8.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAOQ4VqAQ9IE82PjeMrgEgdyu02D9l-YAg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "268839700175-7fa5pqvp1auhmkvckaqtovgv51i7k6n8.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "268839700175-82v1p0ht5m1smb80ct0r1te5l4tiv9u5.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.ifiwerexyz"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:268839700175:android:0d8cdfd0f3ac6226c7d9ba",
+        "android_client_info": {
+          "package_name": "com.ifiwerexyz"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "268839700175-6fghgoms365o4g4kfme25n3gb9c92506.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.ifiwerexyz",
+            "certificate_hash": "cb64dcf34b0500731f1f03c22316da4dcb23ed2e"
+          }
+        },
+        {
+          "client_id": "268839700175-7fa5pqvp1auhmkvckaqtovgv51i7k6n8.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAOQ4VqAQ9IE82PjeMrgEgdyu02D9l-YAg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "268839700175-7fa5pqvp1auhmkvckaqtovgv51i7k6n8.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "268839700175-82v1p0ht5m1smb80ct0r1te5l4tiv9u5.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.ifiwerexyz"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:268839700175:android:a643160b15b2027bc7d9ba",
+        "android_client_info": {
+          "package_name": "com.thebuildershubb"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "268839700175-jteeovi8rh4vk5dhc74jd49g6as3cfbi.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.thebuildershubb",
+            "certificate_hash": "cb64dcf34b0500731f1f03c22316da4dcb23ed2e"
+          }
+        },
+        {
+          "client_id": "268839700175-7fa5pqvp1auhmkvckaqtovgv51i7k6n8.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAOQ4VqAQ9IE82PjeMrgEgdyu02D9l-YAg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "268839700175-7fa5pqvp1auhmkvckaqtovgv51i7k6n8.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "268839700175-82v1p0ht5m1smb80ct0r1te5l4tiv9u5.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.ifiwerexyz"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:268839700175:android:b59a8aaabde33dd6c7d9ba",
+        "android_client_info": {
+          "package_name": "foodweb.ng.com"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "268839700175-7fa5pqvp1auhmkvckaqtovgv51i7k6n8.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAOQ4VqAQ9IE82PjeMrgEgdyu02D9l-YAg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "268839700175-7fa5pqvp1auhmkvckaqtovgv51i7k6n8.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "268839700175-82v1p0ht5m1smb80ct0r1te5l4tiv9u5.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.ifiwerexyz"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:268839700175:android:58cb930310b63d28c7d9ba",
+        "android_client_info": {
+          "package_name": "thebuildershubb.provider.com"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "268839700175-gr4f62nbqe4955tbrini5nhrfoe5qdf8.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "thebuildershubb.provider.com",
+            "certificate_hash": "459e589ea0407068a84d84280985b8099141da60"
+          }
+        },
+        {
+          "client_id": "268839700175-7fa5pqvp1auhmkvckaqtovgv51i7k6n8.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAOQ4VqAQ9IE82PjeMrgEgdyu02D9l-YAg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "268839700175-7fa5pqvp1auhmkvckaqtovgv51i7k6n8.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "268839700175-82v1p0ht5m1smb80ct0r1te5l4tiv9u5.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.ifiwerexyz"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,133 @@
+plugins {
+    id "com.android.application"
+    id "kotlin-android"
+    id "dev.flutter.flutter-gradle-plugin"
+    id "com.google.gms.google-services"
+    id "com.google.firebase.crashlytics"
+}
+
+def localProperties = new Properties()
+def localPropertiesFile = rootProject.file('local.properties')
+if (localPropertiesFile.exists()) {
+    localPropertiesFile.withReader('UTF-8') { reader -> localProperties.load(reader) }
+}
+
+def flutterVersionCode = localProperties.getProperty('flutter.versionCode', '3')
+def flutterVersionName = localProperties.getProperty('flutter.versionName', '1.0')
+
+def keystoreProperties = new Properties()
+def keystorePropertiesFile = rootProject.file('key.properties')
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+}
+
+android {
+    namespace "foodweb.ng.com"
+    compileSdk 35
+    ndkVersion flutter.ndkVersion
+
+    packagingOptions {
+        // Enable legacy packaging for 16KB page size compatibility
+        jniLibs.useLegacyPackaging = true
+        
+        // Ensure proper alignment for native libraries
+        jniLibs.pickFirsts.add('**/lib/*/libapp.so')
+        jniLibs.pickFirsts.add('**/lib/*/libflutter.so')
+        jniLibs.pickFirsts.add('**/lib/*/libc++_shared.so')
+        
+        // Remove unnecessary META-INF files
+        exclude 'META-INF/DEPENDENCIES'
+        exclude 'META-INF/LICENSE'
+        exclude 'META-INF/LICENSE.txt'
+        exclude 'META-INF/NOTICE'
+        exclude 'META-INF/NOTICE.txt'
+        exclude 'META-INF/ASL2.0'
+        exclude 'META-INF/*.version'
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+        coreLibraryDesugaringEnabled true
+    }
+
+    kotlinOptions {
+        jvmTarget = '17'
+        freeCompilerArgs += [
+                "-Xjvm-default=all",
+                "-Xskip-prerelease-check"
+        ]
+    }
+
+    sourceSets {
+        main.java.srcDirs += 'src/main/kotlin'
+    }
+
+    defaultConfig {
+        applicationId "foodweb.ng.com"
+        minSdkVersion 23
+        targetSdkVersion 35
+        versionCode flutterVersionCode.toInteger()
+        versionName flutterVersionName
+        multiDexEnabled true
+
+        ndk {
+            abiFilters 'armeabi-v7a', 'arm64-v8a'
+        }
+    }
+
+    signingConfigs {
+        release {
+            keyAlias keystoreProperties['keyAlias']
+            keyPassword keystoreProperties['keyPassword']
+            storeFile keystoreProperties['storeFile'] ? file(keystoreProperties['storeFile']) : null
+            storePassword keystoreProperties['storePassword']
+        }
+        debug {
+            storeFile file('debug.keystore')
+        }
+    }
+
+    buildTypes {
+        release {
+            signingConfig signingConfigs.release
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+
+            ndk {
+                debugSymbolLevel 'FULL'
+            }
+            
+            packagingOptions {
+                jniLibs.useLegacyPackaging = true
+            }
+        }
+        debug {
+            signingConfig signingConfigs.debug
+            minifyEnabled false
+            shrinkResources false
+        }
+    }
+}
+
+flutter {
+    source '../..'
+}
+
+dependencies {
+    // Firebase BOM for version alignment
+    implementation platform('com.google.firebase:firebase-bom:33.5.1')
+
+    // Firebase Messaging
+    implementation 'com.google.firebase:firebase-messaging'
+
+    // Facebook SDK
+    implementation 'com.facebook.android:facebook-android-sdk:16.3.0'
+
+    // Java 8+ APIs for older devices
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.4'
+
+    // Multidex for >65K methods
+    implementation 'androidx.multidex:multidex:2.0.1'
+}

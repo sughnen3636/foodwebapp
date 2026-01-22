@@ -1,0 +1,103 @@
+buildscript {
+    ext.kotlin_version = '1.9.22'  // Latest stable Kotlin version
+    ext.agp_version = '8.2.2'      // Latest stable Android Gradle Plugin version
+
+    repositories {
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+    }
+
+    dependencies {
+        classpath "com.android.tools.build:gradle:$agp_version"
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        classpath 'com.google.gms:google-services:4.4.1'  // Google Services plugin
+        classpath 'com.google.firebase:firebase-crashlytics-gradle:2.9.9'  // Crashlytics plugin
+        classpath 'com.google.firebase:perf-plugin:1.4.2'  // Performance Monitoring plugin
+
+        // Add dependency for the Android navigation safe args plugin
+        classpath 'androidx.navigation:navigation-safe-args-gradle-plugin:2.7.7'
+    }
+}
+
+// Configure Java and Kotlin compilation for all projects
+subprojects { subproject ->
+    // Apply JVM toolchain for consistent Java versioning
+    plugins.withType(JavaPlugin).configureEach {
+        java {
+            toolchain {
+                languageVersion.set(JavaLanguageVersion.of(17))
+            }
+        }
+    }
+
+    // Apply Kotlin Android plugin if needed
+    plugins.withId('kotlin-android') {
+        android {
+            compileOptions {
+                sourceCompatibility JavaVersion.VERSION_17
+                targetCompatibility JavaVersion.VERSION_17
+            }
+            
+            // Only apply kotlinOptions if the Android extension exists
+            if (extensions.findByName('kotlinOptions') != null) {
+                kotlinOptions {
+                    jvmTarget = '17'
+                }
+            }
+        }
+    }
+
+    // Configure Java compilation for all projects
+    plugins.withType(JavaPlugin) {
+        java {
+            sourceCompatibility = JavaVersion.VERSION_17
+            targetCompatibility = JavaVersion.VERSION_17
+        }
+    }
+
+    // Configure Kotlin compilation for all projects
+    plugins.withType(org.jetbrains.kotlin.gradle.plugin.KotlinBasePlugin) {
+        tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+            kotlinOptions {
+                jvmTarget = '17'
+            }
+        }
+    }
+    
+    // Specific configuration for problematic modules
+    def modulesNeedingJava17 = ['audioplayers_android', 'location', 'shared_preferences_android', 'sign_in_with_apple']
+    if (modulesNeedingJava17.contains(subproject.name)) {
+        subproject.afterEvaluate {
+            android {
+                compileOptions {
+                    sourceCompatibility JavaVersion.VERSION_17
+                    targetCompatibility JavaVersion.VERSION_17
+                }
+                
+                kotlinOptions {
+                    jvmTarget = '17'
+                }
+            }
+        }
+    }
+}
+
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+rootProject.buildDir = '../build'
+subprojects {
+    project.buildDir = "${rootProject.buildDir}/${project.name}"
+}
+subprojects {
+    project.evaluationDependsOn(':app')
+}
+
+tasks.register("clean", Delete) {
+    delete rootProject.buildDir
+}
