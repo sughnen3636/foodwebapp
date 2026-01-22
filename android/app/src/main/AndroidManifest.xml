@@ -90,7 +90,7 @@
         <meta-data android:name="com.facebook.sdk.ClientToken" android:value="@string/facebook_client_token"/>
 
         <activity
-            android:name="com.sixamtech.sixam_mart_user.sign_in_with_apple.SignInWithAppleCallback"
+            android:name="foodweb.ng.com.sign_in_with_apple.SignInWithAppleCallback"
             android:exported="true"
             >
             <intent-filter>

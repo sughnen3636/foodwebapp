@@ -72,7 +72,7 @@ class DefaultFirebaseOptions {
     storageBucket: 'thebuildershubb.firebasestorage.app',
     androidClientId: '268839700175-56qhdjj3a2n32feoniafmtc99a5og5nd.apps.googleusercontent.com',
     iosClientId: '268839700175-haeui7ts0buj0a3qnmnra755t70f19s1.apps.googleusercontent.com',
-    iosBundleId: 'com.sixamtech.6amMart',
+    iosBundleId: 'foodweb.ng.com',
   );
 
 }
