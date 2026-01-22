@@ -1,0 +1,40 @@
+name: iOS Build for Simulator
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+jobs:
+  build-ios:
+    runs-on: macos-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        channel: 'stable'
+    
+    - name: Get Flutter dependencies
+      run: flutter pub get
+    
+    - name: Install CocoaPods
+      run: |
+        cd ios
+        pod install
+    
+    - name: Build iOS for Simulator
+      run: flutter build ios --simulator --release
+    
+    - name: List build output
+      run: |
+        echo "Build completed. Contents of build/ios/iphonesimulator:"
+        ls -la build/ios/iphonesimulator/
+    
+    - name: Upload simulator app
+      uses: actions/upload-artifact@v4
+      with:
+        name: ios-app-simulator
+        path: build/ios/iphonesimulator/Runner.app

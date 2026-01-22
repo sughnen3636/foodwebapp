@@ -1,0 +1,64 @@
+name: iOS Build (No Development Team)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+jobs:
+  build-ios:
+    runs-on: macos-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        channel: 'stable'
+    
+    - name: Get Flutter dependencies
+      run: flutter pub get
+    
+    - name: Install CocoaPods
+      run: |
+        cd ios
+        pod install
+    
+    - name: Configure Xcode project for no code signing
+      run: |
+        cd ios
+        # Remove development team and code signing requirements
+        sed -i '' 's/DEVELOPMENT_TEAM = .*/DEVELOPMENT_TEAM = "";/' Runner.xcodeproj/project.pbxproj
+        sed -i '' 's/CODE_SIGN_STYLE = .*/CODE_SIGN_STYLE = Manual;/' Runner.xcodeproj/project.pbxproj
+        sed -i '' 's/CODE_SIGN_IDENTITY = .*/CODE_SIGN_IDENTITY = "";/' Runner.xcodeproj/project.pbxproj
+        sed -i '' 's/PROVISIONING_PROFILE_SPECIFIER = .*/PROVISIONING_PROFILE_SPECIFIER = "";/' Runner.xcodeproj/project.pbxproj
+    
+    - name: Build iOS (unsigned)
+      run: |
+        cd ios
+        xcodebuild -workspace Runner.xcworkspace \
+          -scheme Runner \
+          -configuration Release \
+          -destination generic/platform=iOS \
+          -archivePath Runner.xcarchive \
+          archive \
+          CODE_SIGN_IDENTITY="" \
+          CODE_SIGNING_REQUIRED=NO \
+          CODE_SIGNING_ALLOWED=NO \
+          DEVELOPMENT_TEAM=""
+    
+    - name: List build output
+      run: |
+        echo "Build completed. Contents of ios/:"
+        ls -la ios/
+        if [ -d "ios/Runner.xcarchive" ]; then
+          echo "Archive contents:"
+          ls -la ios/Runner.xcarchive/Products/Applications/
+        fi
+    
+    - name: Upload unsigned app
+      uses: actions/upload-artifact@v4
+      with:
+        name: ios-app-unsigned
+        path: ios/Runner.xcarchive/Products/Applications/Runner.app
