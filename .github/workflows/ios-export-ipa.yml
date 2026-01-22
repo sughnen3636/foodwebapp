@@ -60,20 +60,20 @@ jobs:
     - name: Configure Runner project for manual signing
       run: |
         cd ios
-        # Set Runner target to manual signing with our provisioning profile
-        /usr/libexec/PlistBuddy -c "Set :objects:97C147061CF9000F007C117D:buildSettings:CODE_SIGN_STYLE Manual" Runner.xcodeproj/project.pbxproj
-        /usr/libexec/PlistBuddy -c "Set :objects:97C147071CF9000F007C117D:buildSettings:CODE_SIGN_STYLE Manual" Runner.xcodeproj/project.pbxproj
-        /usr/libexec/PlistBuddy -c "Set :objects:249021D4217E4FDB00AE95B9:buildSettings:CODE_SIGN_STYLE Manual" Runner.xcodeproj/project.pbxproj
+        # Add CODE_SIGN_STYLE to Runner build configurations
+        /usr/libexec/PlistBuddy -c "Add :objects:97C147061CF9000F007C117D:buildSettings:CODE_SIGN_STYLE string Manual" Runner.xcodeproj/project.pbxproj || /usr/libexec/PlistBuddy -c "Set :objects:97C147061CF9000F007C117D:buildSettings:CODE_SIGN_STYLE Manual" Runner.xcodeproj/project.pbxproj
+        /usr/libexec/PlistBuddy -c "Add :objects:97C147071CF9000F007C117D:buildSettings:CODE_SIGN_STYLE string Manual" Runner.xcodeproj/project.pbxproj || /usr/libexec/PlistBuddy -c "Set :objects:97C147071CF9000F007C117D:buildSettings:CODE_SIGN_STYLE Manual" Runner.xcodeproj/project.pbxproj
+        /usr/libexec/PlistBuddy -c "Add :objects:249021D4217E4FDB00AE95B9:buildSettings:CODE_SIGN_STYLE string Manual" Runner.xcodeproj/project.pbxproj || /usr/libexec/PlistBuddy -c "Set :objects:249021D4217E4FDB00AE95B9:buildSettings:CODE_SIGN_STYLE Manual" Runner.xcodeproj/project.pbxproj
         
-        # Set development team
+        # Set development team (already exists, so use Set)
         /usr/libexec/PlistBuddy -c "Set :objects:97C147061CF9000F007C117D:buildSettings:DEVELOPMENT_TEAM 6HB8RU2486" Runner.xcodeproj/project.pbxproj
         /usr/libexec/PlistBuddy -c "Set :objects:97C147071CF9000F007C117D:buildSettings:DEVELOPMENT_TEAM 6HB8RU2486" Runner.xcodeproj/project.pbxproj
         /usr/libexec/PlistBuddy -c "Set :objects:249021D4217E4FDB00AE95B9:buildSettings:DEVELOPMENT_TEAM 6HB8RU2486" Runner.xcodeproj/project.pbxproj
         
-        # Set provisioning profile
-        /usr/libexec/PlistBuddy -c "Set :objects:97C147061CF9000F007C117D:buildSettings:PROVISIONING_PROFILE_SPECIFIER foodweb" Runner.xcodeproj/project.pbxproj
-        /usr/libexec/PlistBuddy -c "Set :objects:97C147071CF9000F007C117D:buildSettings:PROVISIONING_PROFILE_SPECIFIER foodweb" Runner.xcodeproj/project.pbxproj
-        /usr/libexec/PlistBuddy -c "Set :objects:249021D4217E4FDB00AE95B9:buildSettings:PROVISIONING_PROFILE_SPECIFIER foodweb" Runner.xcodeproj/project.pbxproj
+        # Add provisioning profile specifier
+        /usr/libexec/PlistBuddy -c "Add :objects:97C147061CF9000F007C117D:buildSettings:PROVISIONING_PROFILE_SPECIFIER string foodweb" Runner.xcodeproj/project.pbxproj || /usr/libexec/PlistBuddy -c "Set :objects:97C147061CF9000F007C117D:buildSettings:PROVISIONING_PROFILE_SPECIFIER foodweb" Runner.xcodeproj/project.pbxproj
+        /usr/libexec/PlistBuddy -c "Add :objects:97C147071CF9000F007C117D:buildSettings:PROVISIONING_PROFILE_SPECIFIER string foodweb" Runner.xcodeproj/project.pbxproj || /usr/libexec/PlistBuddy -c "Set :objects:97C147071CF9000F007C117D:buildSettings:PROVISIONING_PROFILE_SPECIFIER foodweb" Runner.xcodeproj/project.pbxproj
+        /usr/libexec/PlistBuddy -c "Add :objects:249021D4217E4FDB00AE95B9:buildSettings:PROVISIONING_PROFILE_SPECIFIER string foodweb" Runner.xcodeproj/project.pbxproj || /usr/libexec/PlistBuddy -c "Set :objects:249021D4217E4FDB00AE95B9:buildSettings:PROVISIONING_PROFILE_SPECIFIER foodweb" Runner.xcodeproj/project.pbxproj
 
     - name: Build iOS with xcodebuild directly
       run: |
