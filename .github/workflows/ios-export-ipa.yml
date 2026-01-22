@@ -1,0 +1,105 @@
+name: iOS Export IPA for Manual Upload
+
+on:
+  workflow_dispatch:
+    inputs:
+      export_method:
+        description: 'Export method (app-store, ad-hoc, development)'
+        required: true
+        default: 'app-store'
+
+jobs:
+  export-ipa:
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        channel: 'stable'
+    
+    - name: Install dependencies
+      run: flutter pub get
+    
+    - name: Install CocoaPods
+      run: |
+        cd ios
+        pod install
+    
+    - name: Check secrets availability
+      run: |
+        if [ -z "${{ secrets.IOS_P12_BASE64 }}" ]; then
+          echo "❌ IOS_P12_BASE64 secret is not set"
+          exit 1
+        fi
+        if [ -z "${{ secrets.IOS_MOBILEPROVISION }}" ]; then
+          echo "❌ IOS_MOBILEPROVISION secret is not set"
+          exit 1
+        fi
+        echo "✅ All required secrets are available"
+    
+    - name: Decode iOS signing files
+      run: |
+        echo "${{ secrets.IOS_P12_BASE64 }}" | base64 --decode > ios_cert.p12
+        echo "${{ secrets.IOS_MOBILEPROVISION }}" | base64 --decode > app.mobileprovision
+    
+    - name: Install Apple certificate
+      run: |
+        security create-keychain -p "" build.keychain
+        security default-keychain -s build.keychain
+        security unlock-keychain -p "" build.keychain
+        security import ios_cert.p12 -k build.keychain -P "${{ secrets.IOS_P12_PASSWORD }}" -T /usr/bin/codesign
+        security set-key-partition-list -S apple-tool:,apple: -s -k "" build.keychain
+    
+    - name: Install provisioning profile
+      run: |
+        mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+        cp app.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/
+    
+    - name: Flutter build iOS
+      run: flutter build ios --release --no-codesign
+    
+    - name: Export IPA
+      run: |
+        cd ios
+        xcodebuild \
+          -workspace Runner.xcworkspace \
+          -scheme Runner \
+          -configuration Release \
+          -archivePath build/Runner.xcarchive \
+          archive
+
+        xcodebuild \
+          -exportArchive \
+          -archivePath build/Runner.xcarchive \
+          -exportOptionsPlist ExportOptions.plist \
+          -exportPath build/ipa
+    
+    - name: Rename IPA file
+      run: |
+        cd ios/build/ipa
+        mv *.ipa foodweb-app-store.ipa
+        ls -la *.ipa
+    
+    - name: Upload IPA for Download
+      uses: actions/upload-artifact@v4
+      with:
+        name: foodweb-ios-ipa
+        path: ios/build/ipa/foodweb-app-store.ipa
+        retention-days: 30
+    
+    - name: Display download instructions
+      run: |
+        echo "🎉 IPA Export Complete!"
+        echo ""
+        echo "📦 Your signed IPA file is ready for download:"
+        echo "   1. Go to the 'Summary' tab of this workflow run"
+        echo "   2. Scroll down to 'Artifacts' section"
+        echo "   3. Download 'foodweb-ios-ipa.zip'"
+        echo "   4. Extract to get 'foodweb-app-store.ipa'"
+        echo ""
+        echo "📧 Send this IPA file to your Apple developer with these instructions:"
+        echo "   - Use Xcode Organizer → Distribute App → App Store Connect"
+        echo "   - Or use Transporter app from Mac App Store"
+        echo "   - Or use command: xcrun altool --upload-app -f foodweb-app-store.ipa -u [apple-id] -p [app-password]"
