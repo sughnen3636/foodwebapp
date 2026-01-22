@@ -1,0 +1,76 @@
+name: iOS Build Device (Unsigned)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-ios:
+    runs-on: macos-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        channel: 'stable'
+    
+    - name: Get Flutter dependencies
+      run: flutter pub get
+    
+    - name: Install CocoaPods
+      run: |
+        cd ios
+        pod install
+    
+    - name: Configure Xcode project for unsigned build
+      run: |
+        cd ios
+        # Modify project.pbxproj to remove code signing requirements
+        sed -i '' '/DEVELOPMENT_TEAM/d' Runner.xcodeproj/project.pbxproj
+        sed -i '' '/CODE_SIGN_STYLE/d' Runner.xcodeproj/project.pbxproj
+        sed -i '' '/CODE_SIGN_IDENTITY/d' Runner.xcodeproj/project.pbxproj
+        sed -i '' '/PROVISIONING_PROFILE_SPECIFIER/d' Runner.xcodeproj/project.pbxproj
+        
+        # Add code signing disabled settings
+        sed -i '' '/PRODUCT_BUNDLE_IDENTIFIER/a\
+				CODE_SIGN_IDENTITY = "";' Runner.xcodeproj/project.pbxproj
+        sed -i '' '/CODE_SIGN_IDENTITY = "";/a\
+				CODE_SIGN_STYLE = Manual;' Runner.xcodeproj/project.pbxproj
+        sed -i '' '/CODE_SIGN_STYLE = Manual;/a\
+				DEVELOPMENT_TEAM = "";' Runner.xcodeproj/project.pbxproj
+    
+    - name: Build with xcodebuild directly
+      run: |
+        cd ios
+        xcodebuild clean -workspace Runner.xcworkspace -scheme Runner -configuration Release
+        xcodebuild build -workspace Runner.xcworkspace \
+          -scheme Runner \
+          -configuration Release \
+          -destination generic/platform=iOS \
+          CODE_SIGN_IDENTITY="" \
+          CODE_SIGNING_REQUIRED=NO \
+          CODE_SIGNING_ALLOWED=NO \
+          DEVELOPMENT_TEAM="" \
+          PROVISIONING_PROFILE=""
+    
+    - name: Find and upload build artifacts
+      run: |
+        echo "Looking for build artifacts..."
+        find . -name "*.app" -type d | head -10
+        
+        # Create a simple archive structure
+        mkdir -p build_output
+        if [ -d "ios/build/Release-iphoneos/Runner.app" ]; then
+          cp -r ios/build/Release-iphoneos/Runner.app build_output/
+          echo "Found and copied Runner.app"
+        else
+          echo "Runner.app not found in expected location"
+          find ios -name "Runner.app" -type d
+        fi
+    
+    - name: Upload unsigned app
+      uses: actions/upload-artifact@v4
+      with:
+        name: ios-app-device-unsigned
+        path: build_output/
