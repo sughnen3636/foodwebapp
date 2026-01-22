@@ -57,9 +57,6 @@ jobs:
         mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
         cp app.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/
     
-    - name: Build Flutter dependencies
-      run: flutter build ios --release --no-codesign || true
-    
     - name: Build iOS with xcodebuild directly
       run: |
         cd ios
