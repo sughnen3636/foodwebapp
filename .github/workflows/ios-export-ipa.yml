@@ -57,19 +57,28 @@ jobs:
         mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
         cp app.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/
     
-    - name: Flutter build iOS
-      run: flutter build ios --release --no-codesign
+    - name: Build Flutter dependencies
+      run: flutter build ios --release --no-codesign || true
     
-    - name: Export IPA
+    - name: Build iOS with xcodebuild directly
       run: |
         cd ios
+        # Clean any previous builds
+        xcodebuild clean -workspace Runner.xcworkspace -scheme Runner -configuration Release
+        
+        # Build and archive with proper code signing
         xcodebuild \
           -workspace Runner.xcworkspace \
           -scheme Runner \
           -configuration Release \
+          -destination generic/platform=iOS \
           -archivePath build/Runner.xcarchive \
-          archive
+          archive \
+          CODE_SIGN_IDENTITY="iPhone Distribution" \
+          PROVISIONING_PROFILE_SPECIFIER="foodweb" \
+          DEVELOPMENT_TEAM="6HB8RU2486"
 
+        # Export IPA
         xcodebuild \
           -exportArchive \
           -archivePath build/Runner.xcarchive \
