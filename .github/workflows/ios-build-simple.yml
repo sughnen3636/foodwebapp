@@ -1,17 +1,16 @@
-name: iOS Build (No Code Sign)
+name: iOS Build Simple
 
 on:
   workflow_dispatch:
   push:
-    branches: [ main ]
-  pull_request:
     branches: [ main ]
 
 jobs:
   build-ios:
     runs-on: macos-latest
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
     
     - name: Set up Flutter
       uses: subosito/flutter-action@v2
@@ -19,19 +18,24 @@ jobs:
         flutter-version: '3.19.0'
         channel: 'stable'
     
-    - name: Install dependencies
+    - name: Get Flutter dependencies
       run: flutter pub get
     
-    - name: Install CocoaPods dependencies
+    - name: Install CocoaPods
       run: |
         cd ios
         pod install
     
-    - name: Build iOS (no code signing)
+    - name: Build iOS (unsigned)
       run: flutter build ios --release --no-codesign
     
-    - name: Upload build artifacts
+    - name: List build output
+      run: |
+        echo "Build completed. Contents of build/ios/iphoneos:"
+        ls -la build/ios/iphoneos/
+    
+    - name: Upload unsigned app
       uses: actions/upload-artifact@v4
       with:
-        name: ios-build-unsigned
+        name: ios-app-unsigned
         path: build/ios/iphoneos/Runner.app
