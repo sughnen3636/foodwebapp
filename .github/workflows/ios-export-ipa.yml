@@ -70,42 +70,59 @@ jobs:
     - name: Install provisioning profile
       run: |
         mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-        # Extract and get UUID from the provisioning profile using a more reliable method
+        
+        # Decode the provisioning profile
         security cms -D -i app.mobileprovision > decoded_profile.plist
-        UUID=$(plutil -extract UUID xml1 -o - decoded_profile.plist | sed -n 's/.*<string>\(.*\)<\/string>.*/\1/p')
-        echo "Provisioning profile UUID: $UUID"
         
-        # If UUID extraction failed, try alternative method
+        # Show the decoded profile structure for debugging
+        echo "=== Decoded provisioning profile structure ==="
+        head -100 decoded_profile.plist
+        echo "=== End of profile structure ==="
+        
+        # Extract UUID using multiple methods
+        echo "Attempting UUID extraction..."
+        
+        # Method 1: Using plutil
+        UUID=$(plutil -extract UUID raw decoded_profile.plist 2>/dev/null || echo "")
+        echo "Method 1 (plutil raw): '$UUID'"
+        
+        # Method 2: Using grep and sed
         if [ -z "$UUID" ]; then
-          echo "Primary UUID extraction failed, trying alternative method..."
-          UUID=$(security cms -D -i app.mobileprovision | grep -A1 "<key>UUID</key>" | grep "<string>" | sed 's/.*<string>\(.*\)<\/string>.*/\1/')
-          echo "Alternative UUID extraction result: $UUID"
+          UUID=$(grep -A1 "<key>UUID</key>" decoded_profile.plist | grep "<string>" | sed 's/.*<string>\(.*\)<\/string>.*/\1/' | tr -d '\n\r ')
+          echo "Method 2 (grep/sed): '$UUID'"
         fi
         
-        # Copy with proper UUID filename if we have a UUID
-        if [ ! -z "$UUID" ]; then
+        # Method 3: Using awk
+        if [ -z "$UUID" ]; then
+          UUID=$(awk '/<key>UUID<\/key>/{getline; gsub(/<\/?string>/, ""); gsub(/^[ \t]+|[ \t]+$/, ""); print}' decoded_profile.plist)
+          echo "Method 3 (awk): '$UUID'"
+        fi
+        
+        # Install profile with UUID if we have one
+        if [ ! -z "$UUID" ] && [ "$UUID" != "" ]; then
+          echo "Installing profile with UUID: $UUID"
           cp app.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/$UUID.mobileprovision
-          echo "Installed profile with UUID: $UUID"
         else
-          echo "Warning: Could not extract UUID from provisioning profile"
+          echo "ERROR: Could not extract UUID from provisioning profile"
+          echo "Profile may be corrupted or in unexpected format"
         fi
         
-        # Also copy with original name for fallback
+        # Always install with fallback name
         cp app.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/app.mobileprovision
         
-        # List installed profiles
-        echo "Installed provisioning profiles:"
+        # List all installed profiles
+        echo "=== Installed provisioning profiles ==="
         ls -la ~/Library/MobileDevice/Provisioning\ Profiles/
         
-        # Verify provisioning profile details
-        echo "Provisioning profile details:"
-        security cms -D -i app.mobileprovision | head -50
-        
-        # Check profile name and team ID
-        PROFILE_NAME=$(security cms -D -i app.mobileprovision | grep -A1 "<key>Name</key>" | grep "<string>" | sed 's/.*<string>\(.*\)<\/string>.*/\1/')
-        TEAM_ID=$(security cms -D -i app.mobileprovision | grep -A1 "<key>TeamIdentifier</key>" -A1 | grep "<string>" | sed 's/.*<string>\(.*\)<\/string>.*/\1/')
-        echo "Profile Name: $PROFILE_NAME"
-        echo "Team ID: $TEAM_ID"
+        # Extract and show key profile information
+        echo "=== Profile Information ==="
+        PROFILE_NAME=$(grep -A1 "<key>Name</key>" decoded_profile.plist | grep "<string>" | sed 's/.*<string>\(.*\)<\/string>.*/\1/')
+        TEAM_ID=$(grep -A1 "<key>TeamIdentifier</key>" decoded_profile.plist | grep "<string>" | sed 's/.*<string>\(.*\)<\/string>.*/\1/')
+        BUNDLE_ID=$(grep -A1 "<key>application-identifier</key>" decoded_profile.plist | grep "<string>" | sed 's/.*<string>\(.*\)<\/string>.*/\1/')
+        echo "Profile Name: '$PROFILE_NAME'"
+        echo "Team ID: '$TEAM_ID'"
+        echo "Bundle ID: '$BUNDLE_ID'"
+        echo "Final UUID: '$UUID'"
     
     - name: Configure Runner project for manual signing
       run: |
