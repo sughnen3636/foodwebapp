@@ -67,62 +67,85 @@ jobs:
         echo "Available certificates:"
         security find-identity -v -p codesigning build.keychain
     
-    - name: Install provisioning profile
+    - name: Install provisioning profile and validate
       run: |
         mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
         
-        # Decode the provisioning profile
-        security cms -D -i app.mobileprovision > decoded_profile.plist
+        # First, validate the provisioning profile file
+        echo "=== Validating provisioning profile ==="
+        file app.mobileprovision
+        ls -la app.mobileprovision
         
-        # Show the decoded profile structure for debugging
-        echo "=== Decoded provisioning profile structure ==="
-        head -100 decoded_profile.plist
-        echo "=== End of profile structure ==="
+        # Try to decode and validate the profile
+        if security cms -D -i app.mobileprovision > decoded_profile.plist; then
+          echo "✓ Profile decoded successfully"
+        else
+          echo "✗ Failed to decode provisioning profile"
+          exit 1
+        fi
         
-        # Extract UUID using multiple methods
-        echo "Attempting UUID extraction..."
+        # Validate the decoded profile has required keys
+        echo "=== Checking for required profile keys ==="
+        if grep -q "<key>UUID</key>" decoded_profile.plist; then
+          echo "✓ UUID key found"
+        else
+          echo "✗ UUID key missing - profile may be invalid"
+          echo "Profile content preview:"
+          head -50 decoded_profile.plist
+          exit 1
+        fi
         
-        # Method 1: Using plutil
+        if grep -q "<key>Name</key>" decoded_profile.plist; then
+          echo "✓ Name key found"
+        else
+          echo "✗ Name key missing"
+        fi
+        
+        # Extract profile information
         UUID=$(plutil -extract UUID raw decoded_profile.plist 2>/dev/null || echo "")
-        echo "Method 1 (plutil raw): '$UUID'"
-        
-        # Method 2: Using grep and sed
         if [ -z "$UUID" ]; then
           UUID=$(grep -A1 "<key>UUID</key>" decoded_profile.plist | grep "<string>" | sed 's/.*<string>\(.*\)<\/string>.*/\1/' | tr -d '\n\r ')
-          echo "Method 2 (grep/sed): '$UUID'"
         fi
         
-        # Method 3: Using awk
-        if [ -z "$UUID" ]; then
-          UUID=$(awk '/<key>UUID<\/key>/{getline; gsub(/<\/?string>/, ""); gsub(/^[ \t]+|[ \t]+$/, ""); print}' decoded_profile.plist)
-          echo "Method 3 (awk): '$UUID'"
-        fi
-        
-        # Install profile with UUID if we have one
-        if [ ! -z "$UUID" ] && [ "$UUID" != "" ]; then
-          echo "Installing profile with UUID: $UUID"
-          cp app.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/$UUID.mobileprovision
-        else
-          echo "ERROR: Could not extract UUID from provisioning profile"
-          echo "Profile may be corrupted or in unexpected format"
-        fi
-        
-        # Always install with fallback name
-        cp app.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/app.mobileprovision
-        
-        # List all installed profiles
-        echo "=== Installed provisioning profiles ==="
-        ls -la ~/Library/MobileDevice/Provisioning\ Profiles/
-        
-        # Extract and show key profile information
-        echo "=== Profile Information ==="
         PROFILE_NAME=$(grep -A1 "<key>Name</key>" decoded_profile.plist | grep "<string>" | sed 's/.*<string>\(.*\)<\/string>.*/\1/')
         TEAM_ID=$(grep -A1 "<key>TeamIdentifier</key>" decoded_profile.plist | grep "<string>" | sed 's/.*<string>\(.*\)<\/string>.*/\1/')
-        BUNDLE_ID=$(grep -A1 "<key>application-identifier</key>" decoded_profile.plist | grep "<string>" | sed 's/.*<string>\(.*\)<\/string>.*/\1/')
-        echo "Profile Name: '$PROFILE_NAME'"
+        
+        echo "=== Profile Details ==="
+        echo "UUID: '$UUID'"
+        echo "Name: '$PROFILE_NAME'"
         echo "Team ID: '$TEAM_ID'"
-        echo "Bundle ID: '$BUNDLE_ID'"
-        echo "Final UUID: '$UUID'"
+        
+        # Validate extracted values
+        if [ -z "$UUID" ]; then
+          echo "✗ Failed to extract UUID"
+          exit 1
+        fi
+        
+        if [ "$PROFILE_NAME" != "foodweb" ]; then
+          echo "⚠ Warning: Profile name is '$PROFILE_NAME', expected 'foodweb'"
+        fi
+        
+        if [ "$TEAM_ID" != "6HB8RU2486" ]; then
+          echo "⚠ Warning: Team ID is '$TEAM_ID', expected '6HB8RU2486'"
+        fi
+        
+        # Install the profile with proper UUID filename
+        echo "=== Installing provisioning profile ==="
+        cp app.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/$UUID.mobileprovision
+        echo "✓ Installed profile as $UUID.mobileprovision"
+        
+        # Verify installation
+        if [ -f ~/Library/MobileDevice/Provisioning\ Profiles/$UUID.mobileprovision ]; then
+          echo "✓ Profile installation verified"
+          ls -la ~/Library/MobileDevice/Provisioning\ Profiles/$UUID.mobileprovision
+        else
+          echo "✗ Profile installation failed"
+          exit 1
+        fi
+        
+        # List all installed profiles
+        echo "=== All installed profiles ==="
+        ls -la ~/Library/MobileDevice/Provisioning\ Profiles/
     
     - name: Configure Runner project for manual signing
       run: |
@@ -137,10 +160,21 @@ jobs:
         /usr/libexec/PlistBuddy -c "Set :objects:97C147071CF9000F007C117D:buildSettings:DEVELOPMENT_TEAM 6HB8RU2486" Runner.xcodeproj/project.pbxproj
         /usr/libexec/PlistBuddy -c "Set :objects:249021D4217E4FDB00AE95B9:buildSettings:DEVELOPMENT_TEAM 6HB8RU2486" Runner.xcodeproj/project.pbxproj
         
-        # Add provisioning profile specifier
+        # Extract UUID from the installed profile for configuration
+        UUID=$(security cms -D -i ../app.mobileprovision | grep -A1 "<key>UUID</key>" | grep "<string>" | sed 's/.*<string>\(.*\)<\/string>.*/\1/' | tr -d '\n\r ')
+        echo "Using profile UUID for configuration: $UUID"
+        
+        # Add provisioning profile specifier (using profile name)
+        echo "Setting PROVISIONING_PROFILE_SPECIFIER to 'foodweb'"
         /usr/libexec/PlistBuddy -c "Add :objects:97C147061CF9000F007C117D:buildSettings:PROVISIONING_PROFILE_SPECIFIER string foodweb" Runner.xcodeproj/project.pbxproj || /usr/libexec/PlistBuddy -c "Set :objects:97C147061CF9000F007C117D:buildSettings:PROVISIONING_PROFILE_SPECIFIER foodweb" Runner.xcodeproj/project.pbxproj
         /usr/libexec/PlistBuddy -c "Add :objects:97C147071CF9000F007C117D:buildSettings:PROVISIONING_PROFILE_SPECIFIER string foodweb" Runner.xcodeproj/project.pbxproj || /usr/libexec/PlistBuddy -c "Set :objects:97C147071CF9000F007C117D:buildSettings:PROVISIONING_PROFILE_SPECIFIER foodweb" Runner.xcodeproj/project.pbxproj
         /usr/libexec/PlistBuddy -c "Add :objects:249021D4217E4FDB00AE95B9:buildSettings:PROVISIONING_PROFILE_SPECIFIER string foodweb" Runner.xcodeproj/project.pbxproj || /usr/libexec/PlistBuddy -c "Set :objects:249021D4217E4FDB00AE95B9:buildSettings:PROVISIONING_PROFILE_SPECIFIER foodweb" Runner.xcodeproj/project.pbxproj
+        
+        # Also set the UUID-based provisioning profile (fallback)
+        echo "Setting PROVISIONING_PROFILE to UUID: $UUID"
+        /usr/libexec/PlistBuddy -c "Add :objects:97C147061CF9000F007C117D:buildSettings:PROVISIONING_PROFILE string $UUID" Runner.xcodeproj/project.pbxproj || /usr/libexec/PlistBuddy -c "Set :objects:97C147061CF9000F007C117D:buildSettings:PROVISIONING_PROFILE $UUID" Runner.xcodeproj/project.pbxproj
+        /usr/libexec/PlistBuddy -c "Add :objects:97C147071CF9000F007C117D:buildSettings:PROVISIONING_PROFILE string $UUID" Runner.xcodeproj/project.pbxproj || /usr/libexec/PlistBuddy -c "Set :objects:97C147071CF9000F007C117D:buildSettings:PROVISIONING_PROFILE $UUID" Runner.xcodeproj/project.pbxproj
+        /usr/libexec/PlistBuddy -c "Add :objects:249021D4217E4FDB00AE95B9:buildSettings:PROVISIONING_PROFILE string $UUID" Runner.xcodeproj/project.pbxproj || /usr/libexec/PlistBuddy -c "Set :objects:249021D4217E4FDB00AE95B9:buildSettings:PROVISIONING_PROFILE $UUID" Runner.xcodeproj/project.pbxproj
         
         # Add code signing identity for distribution certificate
         /usr/libexec/PlistBuddy -c "Add :objects:97C147061CF9000F007C117D:buildSettings:CODE_SIGN_IDENTITY string \"iPhone Distribution\"" Runner.xcodeproj/project.pbxproj || /usr/libexec/PlistBuddy -c "Set :objects:97C147061CF9000F007C117D:buildSettings:CODE_SIGN_IDENTITY \"iPhone Distribution\"" Runner.xcodeproj/project.pbxproj
