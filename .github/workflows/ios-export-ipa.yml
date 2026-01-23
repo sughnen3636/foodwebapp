@@ -49,7 +49,19 @@ jobs:
         security create-keychain -p "" build.keychain
         security default-keychain -s build.keychain
         security unlock-keychain -p "" build.keychain
-        security import ios_cert.p12 -k build.keychain -P "${{ secrets.P12_PASSWORD }}" -T /usr/bin/codesign
+        
+        # Check if the file is a .p12 or .cer and handle accordingly
+        file_type=$(file ios_cert.p12)
+        echo "Certificate file type: $file_type"
+        
+        if [[ "$file_type" == *"PKCS"* ]] || [[ "$file_type" == *"data"* ]]; then
+          echo "Importing P12 certificate with private key..."
+          security import ios_cert.p12 -k build.keychain -P "${{ secrets.P12_PASSWORD }}" -T /usr/bin/codesign
+        else
+          echo "Installing CER certificate (public key only)..."
+          security add-certificates -k build.keychain ios_cert.p12
+        fi
+        
         security set-key-partition-list -S apple-tool:,apple: -s -k "" build.keychain
         # List available certificates
         echo "Available certificates:"
