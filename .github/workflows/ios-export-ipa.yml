@@ -74,6 +74,11 @@ jobs:
         /usr/libexec/PlistBuddy -c "Add :objects:97C147061CF9000F007C117D:buildSettings:PROVISIONING_PROFILE_SPECIFIER string foodweb" Runner.xcodeproj/project.pbxproj || /usr/libexec/PlistBuddy -c "Set :objects:97C147061CF9000F007C117D:buildSettings:PROVISIONING_PROFILE_SPECIFIER foodweb" Runner.xcodeproj/project.pbxproj
         /usr/libexec/PlistBuddy -c "Add :objects:97C147071CF9000F007C117D:buildSettings:PROVISIONING_PROFILE_SPECIFIER string foodweb" Runner.xcodeproj/project.pbxproj || /usr/libexec/PlistBuddy -c "Set :objects:97C147071CF9000F007C117D:buildSettings:PROVISIONING_PROFILE_SPECIFIER foodweb" Runner.xcodeproj/project.pbxproj
         /usr/libexec/PlistBuddy -c "Add :objects:249021D4217E4FDB00AE95B9:buildSettings:PROVISIONING_PROFILE_SPECIFIER string foodweb" Runner.xcodeproj/project.pbxproj || /usr/libexec/PlistBuddy -c "Set :objects:249021D4217E4FDB00AE95B9:buildSettings:PROVISIONING_PROFILE_SPECIFIER foodweb" Runner.xcodeproj/project.pbxproj
+        
+        # Add code signing identity for distribution certificate
+        /usr/libexec/PlistBuddy -c "Add :objects:97C147061CF9000F007C117D:buildSettings:CODE_SIGN_IDENTITY string \"iPhone Distribution\"" Runner.xcodeproj/project.pbxproj || /usr/libexec/PlistBuddy -c "Set :objects:97C147061CF9000F007C117D:buildSettings:CODE_SIGN_IDENTITY \"iPhone Distribution\"" Runner.xcodeproj/project.pbxproj
+        /usr/libexec/PlistBuddy -c "Add :objects:97C147071CF9000F007C117D:buildSettings:CODE_SIGN_IDENTITY string \"iPhone Distribution\"" Runner.xcodeproj/project.pbxproj || /usr/libexec/PlistBuddy -c "Set :objects:97C147071CF9000F007C117D:buildSettings:CODE_SIGN_IDENTITY \"iPhone Distribution\"" Runner.xcodeproj/project.pbxproj
+        /usr/libexec/PlistBuddy -c "Add :objects:249021D4217E4FDB00AE95B9:buildSettings:CODE_SIGN_IDENTITY string \"iPhone Distribution\"" Runner.xcodeproj/project.pbxproj || /usr/libexec/PlistBuddy -c "Set :objects:249021D4217E4FDB00AE95B9:buildSettings:CODE_SIGN_IDENTITY \"iPhone Distribution\"" Runner.xcodeproj/project.pbxproj
 
     - name: Build iOS with xcodebuild directly
       run: |
