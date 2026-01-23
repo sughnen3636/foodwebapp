@@ -58,18 +58,42 @@ jobs:
     - name: Install provisioning profile
       run: |
         mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-        # Get the UUID from the provisioning profile
-        UUID=$(security cms -D -i app.mobileprovision | plutil -extract UUID xml1 -o - - | xmllint --xpath "//string/text()" -)
+        # Extract and get UUID from the provisioning profile using a more reliable method
+        security cms -D -i app.mobileprovision > decoded_profile.plist
+        UUID=$(plutil -extract UUID xml1 -o - decoded_profile.plist | sed -n 's/.*<string>\(.*\)<\/string>.*/\1/p')
         echo "Provisioning profile UUID: $UUID"
-        # Copy with proper UUID filename
-        cp app.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/$UUID.mobileprovision
+        
+        # If UUID extraction failed, try alternative method
+        if [ -z "$UUID" ]; then
+          echo "Primary UUID extraction failed, trying alternative method..."
+          UUID=$(security cms -D -i app.mobileprovision | grep -A1 "<key>UUID</key>" | grep "<string>" | sed 's/.*<string>\(.*\)<\/string>.*/\1/')
+          echo "Alternative UUID extraction result: $UUID"
+        fi
+        
+        # Copy with proper UUID filename if we have a UUID
+        if [ ! -z "$UUID" ]; then
+          cp app.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/$UUID.mobileprovision
+          echo "Installed profile with UUID: $UUID"
+        else
+          echo "Warning: Could not extract UUID from provisioning profile"
+        fi
+        
         # Also copy with original name for fallback
         cp app.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/app.mobileprovision
+        
         # List installed profiles
+        echo "Installed provisioning profiles:"
         ls -la ~/Library/MobileDevice/Provisioning\ Profiles/
+        
         # Verify provisioning profile details
         echo "Provisioning profile details:"
-        security cms -D -i app.mobileprovision | plutil -p -
+        security cms -D -i app.mobileprovision | head -50
+        
+        # Check profile name and team ID
+        PROFILE_NAME=$(security cms -D -i app.mobileprovision | grep -A1 "<key>Name</key>" | grep "<string>" | sed 's/.*<string>\(.*\)<\/string>.*/\1/')
+        TEAM_ID=$(security cms -D -i app.mobileprovision | grep -A1 "<key>TeamIdentifier</key>" -A1 | grep "<string>" | sed 's/.*<string>\(.*\)<\/string>.*/\1/')
+        echo "Profile Name: $PROFILE_NAME"
+        echo "Team ID: $TEAM_ID"
     
     - name: Configure Runner project for manual signing
       run: |
