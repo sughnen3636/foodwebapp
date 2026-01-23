@@ -67,22 +67,41 @@ jobs:
         echo "Available certificates:"
         security find-identity -v -p codesigning build.keychain
     
-    - name: Install provisioning profile and validate
+    - name: Diagnose provisioning profile issue
       run: |
-        mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+        echo "=== DIAGNOSTIC: Checking provisioning profile file ==="
+        echo "Current directory: $(pwd)"
+        echo "Files in current directory:"
+        ls -la
         
-        # First, validate the provisioning profile file
-        echo "=== Validating provisioning profile ==="
-        file app.mobileprovision
-        ls -la app.mobileprovision
-        
-        # Try to decode and validate the profile
-        if security cms -D -i app.mobileprovision > decoded_profile.plist; then
-          echo "✓ Profile decoded successfully"
+        echo "=== Checking if app.mobileprovision exists ==="
+        if [ -f app.mobileprovision ]; then
+          echo "✓ app.mobileprovision file exists"
+          echo "File size: $(wc -c < app.mobileprovision) bytes"
+          echo "File type: $(file app.mobileprovision)"
+          echo "First 100 bytes (hex): $(head -c 100 app.mobileprovision | xxd)"
         else
-          echo "✗ Failed to decode provisioning profile"
+          echo "✗ app.mobileprovision file NOT FOUND"
+          echo "This explains why the profile installation is failing"
           exit 1
         fi
+        
+        echo "=== Attempting to decode profile ==="
+        if security cms -D -i app.mobileprovision > decoded_profile.plist 2>&1; then
+          echo "✓ Profile decoded successfully"
+          echo "Decoded file size: $(wc -c < decoded_profile.plist) bytes"
+          echo "First 200 characters of decoded profile:"
+          head -c 200 decoded_profile.plist
+        else
+          echo "✗ Failed to decode provisioning profile"
+          echo "Security command error output:"
+          security cms -D -i app.mobileprovision 2>&1 || true
+          echo "Raw file content (first 500 bytes):"
+          head -c 500 app.mobileprovision | cat -v
+          exit 1
+        fi
+        
+        mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
         
         # Validate the decoded profile has required keys
         echo "=== Checking for required profile keys ==="
