@@ -51,11 +51,25 @@ jobs:
         security unlock-keychain -p "" build.keychain
         security import ios_cert.p12 -k build.keychain -P "${{ secrets.P12_PASSWORD }}" -T /usr/bin/codesign
         security set-key-partition-list -S apple-tool:,apple: -s -k "" build.keychain
+        # List available certificates
+        echo "Available certificates:"
+        security find-identity -v -p codesigning build.keychain
     
     - name: Install provisioning profile
       run: |
         mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-        cp app.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/
+        # Get the UUID from the provisioning profile
+        UUID=$(security cms -D -i app.mobileprovision | plutil -extract UUID xml1 -o - - | xmllint --xpath "//string/text()" -)
+        echo "Provisioning profile UUID: $UUID"
+        # Copy with proper UUID filename
+        cp app.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/$UUID.mobileprovision
+        # Also copy with original name for fallback
+        cp app.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/app.mobileprovision
+        # List installed profiles
+        ls -la ~/Library/MobileDevice/Provisioning\ Profiles/
+        # Verify provisioning profile details
+        echo "Provisioning profile details:"
+        security cms -D -i app.mobileprovision | plutil -p -
     
     - name: Configure Runner project for manual signing
       run: |
